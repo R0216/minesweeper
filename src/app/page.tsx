@@ -20,7 +20,7 @@ export default function Home() {
 
   const [bombMap, setBombMap] = useState(startBoard);
 
-  const board = calcBoard(userInput, bombMap);
+  // const board = calcBoard(userInput, bombMap);
 
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
