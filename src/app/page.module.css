@@ -13,6 +13,7 @@
   width: 30px;
   height: 30px;
   background: url('~/src/assets/images/icons.png') no-repeat;
+  background-size: auto;
   border: 1px solid black;
 }
 
