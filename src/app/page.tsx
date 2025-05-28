@@ -10,7 +10,7 @@ export default function Home() {
   const createEmptyBoard = (): number[][] =>
     Array.from({ length: BOARD_SIZE }).map(() => Array<number>(BOARD_SIZE).fill(0));
 
-  const placeBombs = (excludeX: number, excludeY: number): number[][] => {
+  const placeBombs = (firstX: number, firstY: number): number[][] => {
     const board = createEmptyBoard();
     let bombsPlaced = 0;
 
@@ -18,7 +18,7 @@ export default function Home() {
       const x = Math.floor(Math.random() * BOARD_SIZE);
       const y = Math.floor(Math.random() * BOARD_SIZE);
 
-      if (board[y][x] === 9 || (x === excludeX && y === excludeY)) continue;
+      if (board[y][x] === 9 || (x === firstX && y === firstY)) continue;
 
       board[y][x] = 9;
       bombsPlaced++;
@@ -26,10 +26,10 @@ export default function Home() {
 
     return board;
   };
+  const dx = [-1, -1, -1, 0, 0, 1, 1, 1];
+  const dy = [-1, 0, 1, -1, 1, -1, 0, 1];
 
   const calculateNumbers = (board: number[][]): number[][] => {
-    const dx = [-1, -1, -1, 0, 0, 1, 1, 1];
-    const dy = [-1, 0, 1, -1, 1, -1, 0, 1];
     const result = board.map((row) => [...row]);
 
     for (let y = 0; y < BOARD_SIZE; y++) {
@@ -49,44 +49,137 @@ export default function Home() {
     }
     return result;
   };
+
+  const revealZero = (
+    x: number,
+    y: number,
+    userBoard: number[][],
+    bombBoard: number[][],
+    visited: boolean[][],
+  ) => {
+    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
+    if (visited[y][x] || userBoard[y][x] === 1) return;
+
+    visited[y][x] = true;
+    userBoard[y][x] = 1;
+
+    if (bombBoard[y][x] === 0) {
+      for (let i = 0; i < 8; i++) {
+        const nx = x + dx[i];
+        const ny = y + dy[i];
+        revealZero(nx, ny, userBoard, bombBoard, visited);
+      }
+    }
+  };
+
   const [userInput, setUserInput] = useState(createEmptyBoard());
   const [bombMap, setBombMap] = useState(createEmptyBoard());
+
   const [isBombsPlaced, setIsBombsPlaced] = useState(false);
 
+  const rightClickHandler = (e: React.MouseEvent, x: number, y: number) => {
+    e.preventDefault();
+
+    const newUserInput = structuredClone(userInput);
+    if (userInput[y][x] === 0) {
+      newUserInput[y][x] = 2;
+    } else if (newUserInput[y][x] === 2) {
+      newUserInput[y][x] = 0;
+    }
+    setUserInput(newUserInput);
+  };
+
   const clickHandler = (x: number, y: number) => {
-    console.log(x, y);
+    if (userInput[y][x] === 2) return;
+
+    let newUserInput = structuredClone(userInput);
+
     if (!isBombsPlaced) {
       const bombsOnly = placeBombs(x, y);
       const withNumbers = calculateNumbers(bombsOnly);
       setBombMap(withNumbers);
       setIsBombsPlaced(true);
+
+      newUserInput = structuredClone(createEmptyBoard());
+
+      if (withNumbers[y][x] === 0) {
+        const visited: boolean[][] = Array.from(
+          { length: BOARD_SIZE },
+          () => Array(BOARD_SIZE).fill(false) as boolean[],
+        );
+        revealZero(x, y, newUserInput, withNumbers, visited);
+      } else {
+        newUserInput[y][x] = 1;
+      }
+
+      setUserInput(newUserInput);
+      return;
     }
 
-    const newUserInput = structuredClone(userInput);
-    if (userInput[y][x] === 0) {
+    if (bombMap[y][x] === 9) {
+      newUserInput[y][x] = 1;
+      setUserInput(newUserInput);
+      // TODO: ゲームオーバー処理
+      return;
+    }
+
+    if (bombMap[y][x] === 0) {
+      const visited: boolean[][] = Array.from(
+        { length: BOARD_SIZE },
+        () => Array(BOARD_SIZE).fill(false) as boolean[],
+      );
+      revealZero(x, y, newUserInput, bombMap, visited);
+    } else {
       newUserInput[y][x] = 1;
     }
+
     setUserInput(newUserInput);
   };
+
+  // const clickHandler = (x: number, y: number) => {
+  //   console.log(x, y);
+
+  //   if (userInput[y][x] === 2) return;
+
+  //   if (!isBombsPlaced) {
+  //     const bombsOnly = placeBombs(x, y);
+  //     const withNumbers = calculateNumbers(bombsOnly);
+  //     setBombMap(withNumbers);
+  //     setIsBombsPlaced(true);
+  //   }
+
+  //   const newUserInput = structuredClone(userInput);
+  //   if (userInput[y][x] === 0) {
+  //     newUserInput[y][x] = 1;
+  //     setUserInput(newUserInput);
+  //   }
+  // };
 
   return (
     <div className={styles.container}>
       <div className={styles.board}>
         {userInput.map((row, y) =>
           row.map((color, x) => (
-            <div className={styles.cell} key={`${x}-${y}`} onClick={() => clickHandler(x, y)}>
-              {userInput[y][x] === 1 && (
-                <>
-                  {bombMap[y][x] === 9 ? (
-                    <div className={styles.sampleCell} style={{ backgroundPosition: `-300px` }} />
-                  ) : bombMap[y][x] > 0 ? (
-                    <div
-                      className={styles.sampleCell}
-                      style={{ backgroundPosition: `${bombMap[y][x] * -30 + 30}px` }}
-                    />
-                  ) : null}
-                </>
-              )}
+            <div
+              className={styles.cell}
+              key={`${x}-${y}`}
+              onClick={() => clickHandler(x, y)}
+              onContextMenu={(e) => rightClickHandler(e, x, y)}
+            >
+              {userInput[y][x] === 1 ? (
+                bombMap[y][x] === 9 ? (
+                  <div className={styles.sampleCell} style={{ backgroundPosition: `-301px` }} />
+                ) : bombMap[y][x] > 0 ? (
+                  <div
+                    className={styles.sampleCell}
+                    style={{ backgroundPosition: `${bombMap[y][x] * -31 + 30}px` }}
+                  />
+                ) : (
+                  <div className={styles.zero} />
+                )
+              ) : userInput[y][x] === 2 ? (
+                <div className={styles.sampleCell} style={{ backgroundPosition: `-271px` }} />
+              ) : null}
             </div>
           )),
         )}
