@@ -75,7 +75,7 @@ export default function Home() {
   const [userInput, setUserInput] = useState(createEmptyBoard());
   const [bombMap, setBombMap] = useState(createEmptyBoard());
 
-  const [isBombsPlaced, setIsBombsPlaced] = useState(false);
+  const isBombsPlaced = bombMap.flat().some((cell) => cell !== 0);
 
   const rightClickHandler = (e: React.MouseEvent, x: number, y: number) => {
     e.preventDefault();
@@ -91,6 +91,7 @@ export default function Home() {
 
   const clickHandler = (x: number, y: number) => {
     if (userInput[y][x] === 2) return;
+    if (checkGameOver() || checkGameClear()) return;
 
     let newUserInput = structuredClone(userInput);
 
@@ -98,7 +99,6 @@ export default function Home() {
       const bombsOnly = placeBombs(x, y);
       const withNumbers = calculateNumbers(bombsOnly);
       setBombMap(withNumbers);
-      setIsBombsPlaced(true);
 
       newUserInput = structuredClone(createEmptyBoard());
 
@@ -117,9 +117,16 @@ export default function Home() {
     }
 
     if (bombMap[y][x] === 9) {
-      newUserInput[y][x] = 1;
+      const newUserInput = structuredClone(userInput);
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        for (let i = 0; i < BOARD_SIZE; i++) {
+          if (bombMap[j][i] === 9) {
+            newUserInput[j][i] = 1; // ← 爆弾マスすべて開く
+          }
+        }
+      }
+      newUserInput[y][x] = 3;
       setUserInput(newUserInput);
-      // TODO: ゲームオーバー処理
       return;
     }
 
@@ -134,6 +141,21 @@ export default function Home() {
     }
 
     setUserInput(newUserInput);
+  };
+
+  const checkGameOver = (): boolean => {
+    return userInput.some((row, y) => row.some((cell, x) => cell === 1 && bombMap[y][x] === 9));
+  };
+
+  const checkGameClear = (): boolean => {
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        if (bombMap[y][x] !== 9 && userInput[y][x] !== 1) {
+          return false;
+        }
+      }
+    }
+    return true;
   };
 
   // const clickHandler = (x: number, y: number) => {
@@ -157,33 +179,100 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.board}>
-        {userInput.map((row, y) =>
-          row.map((color, x) => (
-            <div
-              className={styles.cell}
-              key={`${x}-${y}`}
-              onClick={() => clickHandler(x, y)}
-              onContextMenu={(e) => rightClickHandler(e, x, y)}
-            >
-              {userInput[y][x] === 1 ? (
-                bombMap[y][x] === 9 ? (
-                  <div className={styles.sampleCell} style={{ backgroundPosition: `-301px` }} />
-                ) : bombMap[y][x] > 0 ? (
-                  <div
-                    className={styles.sampleCell}
-                    style={{ backgroundPosition: `${bombMap[y][x] * -31 + 30}px` }}
-                  />
-                ) : (
-                  <div className={styles.zero} />
-                )
-              ) : userInput[y][x] === 2 ? (
-                <div className={styles.sampleCell} style={{ backgroundPosition: `-271px` }} />
-              ) : null}
-            </div>
-          )),
-        )}
+      <div className={styles.onBoard}>
+        <div className={styles.timeboard}>
+          <div className={styles.flagCount} />
+          <button onClick={() => clickHandler}>
+            <div className={styles.resetBotton} />
+          </button>
+          <div className={styles.time} />
+        </div>
+        <div className={styles.board}>
+          {userInput.map((row, y) =>
+            row.map((cellState, x) => {
+              // 状態に応じたクラスと style を設定
+              let className = styles.cell;
+              let style = {};
+              if (cellState === 3) {
+                className = styles.clickedBomb;
+              }
+              if (cellState === 1) {
+                if (bombMap[y][x] === 9) {
+                  className = styles.sampleCell;
+                  style = { backgroundPosition: '-300px' };
+                } else if (bombMap[y][x] > 0) {
+                  className = styles.sampleCell;
+                  style = { backgroundPosition: `${bombMap[y][x] * -30 + 30}px` };
+                } else {
+                  className = styles.zero;
+                }
+              } else if (cellState === 2) {
+                className = styles.flag;
+              }
+
+              return (
+                <div
+                  key={`${x}-${y}`}
+                  className={className}
+                  style={style}
+                  onClick={() => clickHandler(x, y)}
+                  onContextMenu={(e) => rightClickHandler(e, x, y)}
+                />
+              );
+            }),
+          )}
+        </div>
       </div>
     </div>
   );
+
+  // return (
+  //   <div className={styles.container}>
+  //     <div className={styles.onBoard}>
+  //       <div className={styles.timeboard}>
+  //         <div className={styles.resetBotton} />
+  //       </div>
+  //       <div className={styles.board}>
+  //         {userInput.map((row, y) =>
+  //           row.map((color, x) => (
+  //             <div
+  //               className={styles.cell}
+  //               key={`${x}-${y}`}
+  //               onClick={() => clickHandler(x, y)}
+  //               onContextMenu={(e) => rightClickHandler(e, x, y)}
+  //             >
+  //               {userInput[y][x] === 1 &&
+  //                 (bombMap[y][x] === 9 ? (
+  //                   <div className={styles.sampleCell} style={{ backgroundPosition: `-300px` }} />
+  //                 ) : bombMap[y][x] > 0 ? (
+  //                   <div
+  //                     className={styles.sampleCell}
+  //                     style={{ backgroundPosition: `${bombMap[y][x] * -30 + 30}px` }}
+  //                   />
+  //                 ) : (
+  //                   <div className={styles.zero} />
+  //                 ))}
+
+  //               {userInput[y][x] === 2 && <div className={styles.flag} />}
+  //             </div>
+  //           )),
+  //         )}
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
+}
+{
+  /* <button onClick={clickhandler}>クリック</button> */
+  // className={
+  //                 userInput[y][x] === 1
+  //                   ? bombMap[y][x] === 9
+  //                     ? styles.sampleCell
+  //                     : bombMap[y][x] > 0
+  //                     ? styles.sampleCell
+  //                     : styles.zero
+  //                   : userInput[y][x] === 2
+  //                   ?styles.flag
+  //                   :styles.cell
+  //               }
 }
