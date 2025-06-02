@@ -84,13 +84,15 @@ export default function Home() {
     if (userInput[y][x] === 0) {
       newUserInput[y][x] = 2;
     } else if (newUserInput[y][x] === 2) {
+      newUserInput[y][x] = 3;
+    } else if (userInput[y][x] === 3) {
       newUserInput[y][x] = 0;
     }
     setUserInput(newUserInput);
   };
 
   const clickHandler = (x: number, y: number) => {
-    if (userInput[y][x] === 2) return;
+    if (userInput[y][x] === 2 || userInput[y][x] === 3) return;
     if (checkGameOver() || checkGameClear()) return;
 
     let newUserInput = structuredClone(userInput);
@@ -125,7 +127,7 @@ export default function Home() {
           }
         }
       }
-      newUserInput[y][x] = 3;
+      newUserInput[y][x] = 4;
       setUserInput(newUserInput);
       return;
     }
@@ -141,6 +143,11 @@ export default function Home() {
     }
 
     setUserInput(newUserInput);
+  };
+
+  const resetGame = () => {
+    setUserInput(createEmptyBoard());
+    setBombMap(createEmptyBoard());
   };
 
   const checkGameOver = (): boolean => {
@@ -182,7 +189,7 @@ export default function Home() {
       <div className={styles.onBoard}>
         <div className={styles.timeboard}>
           <div className={styles.flagCount} />
-          <button onClick={() => clickHandler}>
+          <button onClick={resetGame}>
             <div className={styles.resetBotton} />
           </button>
           <div className={styles.time} />
@@ -193,7 +200,7 @@ export default function Home() {
               // 状態に応じたクラスと style を設定
               let className = styles.cell;
               let style = {};
-              if (cellState === 3) {
+              if (cellState === 4) {
                 className = styles.clickedBomb;
               }
               if (cellState === 1) {
@@ -208,6 +215,8 @@ export default function Home() {
                 }
               } else if (cellState === 2) {
                 className = styles.flag;
+              } else if (cellState === 3) {
+                className = styles.question;
               }
 
               return (
