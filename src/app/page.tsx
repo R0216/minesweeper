@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -26,6 +26,9 @@ export default function Home() {
 
     return board;
   };
+  const [userInput, setUserInput] = useState(createEmptyBoard());
+  const [bombMap, setBombMap] = useState(createEmptyBoard());
+  const [timeCount, setTimeCount] = useState(0);
   const dx = [-1, -1, -1, 0, 0, 1, 1, 1];
   const dy = [-1, 0, 1, -1, 1, -1, 0, 1];
 
@@ -71,11 +74,32 @@ export default function Home() {
       }
     }
   };
+  const checkGameOver = useCallback((): boolean => {
+    return userInput.some((row, y) => row.some((cell, x) => cell === 1 && bombMap[y][x] === 9));
+  }, [userInput, bombMap]);
 
-  const [userInput, setUserInput] = useState(createEmptyBoard());
-  const [bombMap, setBombMap] = useState(createEmptyBoard());
+  const checkGameClear = useCallback((): boolean => {
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        if (bombMap[y][x] !== 9 && userInput[y][x] !== 1) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }, [userInput, bombMap]);
 
   const isBombsPlaced = bombMap.flat().some((cell) => cell !== 0);
+
+  useEffect(() => {
+    if (!isBombsPlaced) return;
+    if (checkGameClear() || checkGameOver()) return;
+
+    const timer = setInterval(() => {
+      setTimeCount((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isBombsPlaced, userInput, checkGameClear, checkGameOver]);
 
   const rightClickHandler = (e: React.MouseEvent, x: number, y: number) => {
     e.preventDefault();
@@ -148,51 +172,16 @@ export default function Home() {
   const resetGame = () => {
     setUserInput(createEmptyBoard());
     setBombMap(createEmptyBoard());
+    setTimeCount(0);
   };
-
-  const checkGameOver = (): boolean => {
-    return userInput.some((row, y) => row.some((cell, x) => cell === 1 && bombMap[y][x] === 9));
-  };
-
-  const checkGameClear = (): boolean => {
-    for (let y = 0; y < BOARD_SIZE; y++) {
-      for (let x = 0; x < BOARD_SIZE; x++) {
-        if (bombMap[y][x] !== 9 && userInput[y][x] !== 1) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
-  // const clickHandler = (x: number, y: number) => {
-  //   console.log(x, y);
-
-  //   if (userInput[y][x] === 2) return;
-
-  //   if (!isBombsPlaced) {
-  //     const bombsOnly = placeBombs(x, y);
-  //     const withNumbers = calculateNumbers(bombsOnly);
-  //     setBombMap(withNumbers);
-  //     setIsBombsPlaced(true);
-  //   }
-
-  //   const newUserInput = structuredClone(userInput);
-  //   if (userInput[y][x] === 0) {
-  //     newUserInput[y][x] = 1;
-  //     setUserInput(newUserInput);
-  //   }
-  // };
 
   return (
     <div className={styles.container}>
       <div className={styles.onBoard}>
-        <div className={styles.timeboard}>
+        <div className={styles.timeboard} onClick={resetGame}>
           <div className={styles.flagCount} />
-          <button onClick={resetGame}>
-            <div className={styles.resetBotton} />
-          </button>
-          <div className={styles.time} />
+          <div className={styles.resetButton} onClick={resetGame} />
+          <div className={styles.time}>{timeCount}</div>
         </div>
         <div className={styles.board}>
           {userInput.map((row, y) =>
@@ -234,54 +223,4 @@ export default function Home() {
       </div>
     </div>
   );
-
-  // return (
-  //   <div className={styles.container}>
-  //     <div className={styles.onBoard}>
-  //       <div className={styles.timeboard}>
-  //         <div className={styles.resetBotton} />
-  //       </div>
-  //       <div className={styles.board}>
-  //         {userInput.map((row, y) =>
-  //           row.map((color, x) => (
-  //             <div
-  //               className={styles.cell}
-  //               key={`${x}-${y}`}
-  //               onClick={() => clickHandler(x, y)}
-  //               onContextMenu={(e) => rightClickHandler(e, x, y)}
-  //             >
-  //               {userInput[y][x] === 1 &&
-  //                 (bombMap[y][x] === 9 ? (
-  //                   <div className={styles.sampleCell} style={{ backgroundPosition: `-300px` }} />
-  //                 ) : bombMap[y][x] > 0 ? (
-  //                   <div
-  //                     className={styles.sampleCell}
-  //                     style={{ backgroundPosition: `${bombMap[y][x] * -30 + 30}px` }}
-  //                   />
-  //                 ) : (
-  //                   <div className={styles.zero} />
-  //                 ))}
-
-  //               {userInput[y][x] === 2 && <div className={styles.flag} />}
-  //             </div>
-  //           )),
-  //         )}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
-}
-{
-  /* <button onClick={clickhandler}>クリック</button> */
-  // className={
-  //                 userInput[y][x] === 1
-  //                   ? bombMap[y][x] === 9
-  //                     ? styles.sampleCell
-  //                     : bombMap[y][x] > 0
-  //                     ? styles.sampleCell
-  //                     : styles.zero
-  //                   : userInput[y][x] === 2
-  //                   ?styles.flag
-  //                   :styles.cell
-  //               }
 }

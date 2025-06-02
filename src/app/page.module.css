@@ -63,8 +63,6 @@
 .cell {
   box-sizing: border-box;
   display: flex;
-
-  /* gap: 0; */
   align-items: center;
   justify-content: center;
   width: 30px;
@@ -86,11 +84,13 @@
 }
 
 .clickedBomb {
+  display: flex;
   width: 30px;
   height: 30px;
   background: url('~/src/assets/images/icons.png') no-repeat;
   background-color: rgb(238 102 102);
   background-position: -300px;
+  border: 1px solid rgb(30 38 46);
 }
 
 .timeboard {
@@ -108,12 +108,23 @@
   border-left: 5px solid rgb(30 38 46);
 }
 
-.resetBotton {
+.resetButton {
   display: flex;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   background: url('~/src/assets/images/icons.png') no-repeat;
-  border: #fff;
+  background-size: auto;
+  border-top: 5px solid rgb(112 120 128);
+  border-right: 5px solid rgb(34 42 50);
+  border-bottom: 5px solid rgb(34 42 50);
+  border-left: 5px solid rgb(112 120 128);
+}
+
+.resetButton:active {
+  border-top: 5px solid rgb(34 42 50);
+  border-right: 3px solid rgb(34 42 50);
+  border-bottom: 3px solid rgb(34 42 50);
+  border-left: 5px solid rgb(34 42 50);
 }
 
 .flagCount {
