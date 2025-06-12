@@ -9,11 +9,12 @@
 }
 
 .onBoard {
-  display: grid;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 314px;
-  height: 425px;
+  justify-content: flex-start;
+  padding: 10px;
   margin-top: 10px;
   background-color: rgb(70 78 86);
   border-top: 5px solid rgb(120 128 136);
