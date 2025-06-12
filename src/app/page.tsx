@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './page.module.css';
 
 interface BoardDimensions {
@@ -40,7 +40,7 @@ export default function Home() {
       setBombCount(setting.bombCount);
       resetGame();
     }
-  }, [difficulty, resetGame]);
+  }, [difficulty, resetGame, setBoardDimensions, setBombCount]);
 
   const placeBombs = (firstX: number, firstY: number): number[][] => {
     const board = createEmptyBoard();
@@ -61,8 +61,8 @@ export default function Home() {
   const [userInput, setUserInput] = useState<number[][] | null>(null);
   const [bombMap, setBombMap] = useState<number[][] | null>(null);
   const [timeCount, setTimeCount] = useState(0);
-  const dx = [-1, -1, -1, 0, 0, 1, 1, 1];
-  const dy = [-1, 0, 1, -1, 1, -1, 0, 1];
+  const dx = useMemo(() => [-1, -1, -1, 0, 0, 1, 1, 1], []);
+  const dy = useMemo(() => [-1, 0, 1, -1, 1, -1, 0, 1], []);
 
   const calculateNumbers = (board: number[][]): number[][] => {
     const result = board.map((row) => [...row]);
@@ -85,27 +85,24 @@ export default function Home() {
     return result;
   };
 
-  const revealZero = (
-    x: number,
-    y: number,
-    userBoard: number[][],
-    bombBoard: number[][],
-    visited: boolean[][],
-  ) => {
-    if (x < 0 || x >= boardDimensions.cols || y < 0 || y >= boardDimensions.rows) return;
-    if (visited[y][x] || userBoard[y][x] === 1) return;
+  const revealZero = useCallback(
+    (x: number, y: number, userBoard: number[][], bombBoard: number[][], visited: boolean[][]) => {
+      if (x < 0 || x >= boardDimensions.cols || y < 0 || y >= boardDimensions.rows) return;
+      if (visited[y][x] || userBoard[y][x] === 1) return;
 
-    visited[y][x] = true;
-    userBoard[y][x] = 1;
+      visited[y][x] = true;
+      userBoard[y][x] = 1;
 
-    if (bombBoard[y][x] === 0) {
-      for (let i = 0; i < 8; i++) {
-        const nx = x + dx[i];
-        const ny = y + dy[i];
-        revealZero(nx, ny, userBoard, bombBoard, visited);
+      if (bombBoard[y][x] === 0) {
+        for (let i = 0; i < 8; i++) {
+          const nx = x + dx[i];
+          const ny = y + dy[i];
+          revealZero(nx, ny, userBoard, bombBoard, visited);
+        }
       }
-    }
-  };
+    },
+    [boardDimensions.rows, boardDimensions.cols, dy, dx],
+  );
   const checkGameOver = useCallback((): boolean => {
     if (!userInput) return false;
     return userInput.some((row, y) =>
@@ -125,7 +122,7 @@ export default function Home() {
     return true;
   }, [userInput, bombMap, boardDimensions.rows, boardDimensions.cols]);
 
-  const isBombsPlaced = bombMap?.flat().some((cell) => cell !== 0);
+  const isBombsPlaced = bombMap?.flat().some((cell) => cell !== 0) ?? false;
   const flagLeft = bombCount - (userInput?.flat().filter((cell) => cell === 2).length || 0);
 
   useEffect(() => {
@@ -144,13 +141,13 @@ export default function Home() {
 
     const flagCount = userInput.flat().filter((cell) => cell === 2).length;
     const newUserInput = structuredClone(userInput);
-    if (userInput[y][x] === 0) {
+    if (newUserInput[y][x] === 0) {
       if (flagCount < bombCount) {
         newUserInput[y][x] = 2;
       }
     } else if (newUserInput[y][x] === 2) {
       newUserInput[y][x] = 3;
-    } else if (userInput[y][x] === 3) {
+    } else if (newUserInput[y][x] === 3) {
       newUserInput[y][x] = 0;
     }
     setUserInput(newUserInput);
@@ -229,7 +226,7 @@ export default function Home() {
   const timeboardBorderWidth = 5;
   const calculatedMinTimeboardWidth = minTimeboardInnerWidth + timeboardBorderWidth * 2;
   const actualTimeboardWidth = Math.max(calculatedBoardWidth, calculatedMinTimeboardWidth);
-  const calculateOnBoardWidth = actualTimeboardWidth + onBoardBorderWidth * 2;
+  const finalOnBoardWidth = actualTimeboardWidth + onBoardBorderWidth * 2;
   Math.max(calculatedBoardWidth, calculatedMinTimeboardWidth) + onBoardBorderWidth * 2;
 
   return (
@@ -278,7 +275,7 @@ export default function Home() {
           </>
         )}
       </div>
-      <div className={styles.onBoard}>
+      <div className={styles.onBoard} style={{ width: `${finalOnBoardWidth}px`, height: 'auto' }}>
         <div className={styles.timeboard} onClick={resetGame}>
           <div className={styles.flagCount}>
             <div className={styles.timeNumber}>
@@ -327,7 +324,7 @@ export default function Home() {
             {
               '--grid-rows': boardDimensions.rows,
               '--grid-cols': boardDimensions.cols,
-              width: `${calculateOnBoardWidth}px`,
+              width: `${calculatedBoardWidth}px`,
               height: `${calculatedBoardHeight}px`,
             } as React.CSSProperties
           }
