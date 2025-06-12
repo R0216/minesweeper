@@ -225,11 +225,12 @@ export default function Home() {
 
   const calculatedBoardWidth = boardDimensions.cols * cellSize + boardBorderWidth * 2;
   const calculatedBoardHeight = boardDimensions.rows * cellSize + boardBorderWidth * 2;
-  const timeboardInnerWidth = 280;
+  const minTimeboardInnerWidth = 280;
   const timeboardBorderWidth = 5;
-  const calculatedTimeboardWidth = timeboardInnerWidth + timeboardBorderWidth * 2;
-  const calculateOnBoardWidth =
-    Math.max(calculatedBoardWidth, calculatedTimeboardWidth) + onBoardBorderWidth * 2;
+  const calculatedMinTimeboardWidth = minTimeboardInnerWidth + timeboardBorderWidth * 2;
+  const actualTimeboardWidth = Math.max(calculatedBoardWidth, calculatedMinTimeboardWidth);
+  const calculateOnBoardWidth = actualTimeboardWidth + onBoardBorderWidth * 2;
+  Math.max(calculatedBoardWidth, calculatedMinTimeboardWidth) + onBoardBorderWidth * 2;
 
   return (
     <div className={styles.container}>
