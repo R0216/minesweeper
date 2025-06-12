@@ -3,20 +3,52 @@
 import { useCallback, useEffect, useState } from 'react';
 import styles from './page.module.css';
 
-export default function Home() {
-  const BOARD_SIZE = 9;
-  const BOMB_COUNT = 10;
+interface BoardDimensions {
+  rows: number;
+  cols: number;
+}
 
-  const createEmptyBoard = (): number[][] =>
-    Array.from({ length: BOARD_SIZE }).map(() => Array<number>(BOARD_SIZE).fill(0));
+const difficultySettings = {
+  easy: { boardDimensions: { rows: 9, cols: 9 }, bombCount: 10 },
+  normal: { boardDimensions: { rows: 16, cols: 16 }, bombCount: 40 },
+  hard: { boardDimensions: { rows: 16, cols: 30 }, bombCount: 99 },
+};
+
+export default function Home() {
+  const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard' | 'custom'>('easy');
+  const [boardDimensions, setBoardDimensions] = useState<BoardDimensions>({ rows: 9, cols: 9 });
+  const [bombCount, setBombCount] = useState(10);
+
+  const createEmptyBoard = useCallback(
+    (): number[][] =>
+      Array.from({ length: boardDimensions.rows }).map(() =>
+        Array<number>(boardDimensions.cols).fill(0),
+      ),
+    [boardDimensions.rows, boardDimensions.cols],
+  );
+
+  const resetGame = useCallback(() => {
+    setUserInput(createEmptyBoard());
+    setBombMap(createEmptyBoard());
+    setTimeCount(0);
+  }, [createEmptyBoard]);
+
+  useEffect(() => {
+    if (difficulty !== 'custom') {
+      const setting = difficultySettings[difficulty];
+      setBoardDimensions(setting.boardDimensions);
+      setBombCount(setting.bombCount);
+      resetGame();
+    }
+  }, [difficulty, resetGame]);
 
   const placeBombs = (firstX: number, firstY: number): number[][] => {
     const board = createEmptyBoard();
     let bombsPlaced = 0;
 
-    while (bombsPlaced < BOMB_COUNT) {
-      const x = Math.floor(Math.random() * BOARD_SIZE);
-      const y = Math.floor(Math.random() * BOARD_SIZE);
+    while (bombsPlaced < bombCount) {
+      const x = Math.floor(Math.random() * boardDimensions.cols);
+      const y = Math.floor(Math.random() * boardDimensions.rows);
 
       if (board[y][x] === 9 || (x === firstX && y === firstY)) continue;
 
@@ -26,8 +58,8 @@ export default function Home() {
 
     return board;
   };
-  const [userInput, setUserInput] = useState(createEmptyBoard());
-  const [bombMap, setBombMap] = useState(createEmptyBoard());
+  const [userInput, setUserInput] = useState<number[][] | null>(null);
+  const [bombMap, setBombMap] = useState<number[][] | null>(null);
   const [timeCount, setTimeCount] = useState(0);
   const dx = [-1, -1, -1, 0, 0, 1, 1, 1];
   const dy = [-1, 0, 1, -1, 1, -1, 0, 1];
@@ -35,15 +67,15 @@ export default function Home() {
   const calculateNumbers = (board: number[][]): number[][] => {
     const result = board.map((row) => [...row]);
 
-    for (let y = 0; y < BOARD_SIZE; y++) {
-      for (let x = 0; x < BOARD_SIZE; x++) {
+    for (let y = 0; y < boardDimensions.rows; y++) {
+      for (let x = 0; x < boardDimensions.cols; x++) {
         if (board[y][x] === 9) continue;
 
         let count = 0;
         for (let i = 0; i < 8; i++) {
           const ny = y + dy[i];
           const nx = x + dx[i];
-          if (ny >= 0 && ny < BOARD_SIZE && nx >= 0 && nx < BOARD_SIZE) {
+          if (ny >= 0 && ny < boardDimensions.rows && nx >= 0 && nx < boardDimensions.cols) {
             if (board[ny][nx] === 9) count++;
           }
         }
@@ -60,7 +92,7 @@ export default function Home() {
     bombBoard: number[][],
     visited: boolean[][],
   ) => {
-    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
+    if (x < 0 || x >= boardDimensions.cols || y < 0 || y >= boardDimensions.rows) return;
     if (visited[y][x] || userBoard[y][x] === 1) return;
 
     visited[y][x] = true;
@@ -75,22 +107,26 @@ export default function Home() {
     }
   };
   const checkGameOver = useCallback((): boolean => {
-    return userInput.some((row, y) => row.some((cell, x) => cell === 1 && bombMap[y][x] === 9));
+    if (!userInput) return false;
+    return userInput.some((row, y) =>
+      row.some((cell, x) => cell === 1 && bombMap && bombMap[y][x] === 9),
+    );
   }, [userInput, bombMap]);
 
   const checkGameClear = useCallback((): boolean => {
-    for (let y = 0; y < BOARD_SIZE; y++) {
-      for (let x = 0; x < BOARD_SIZE; x++) {
+    if (!userInput || !bombMap) return false;
+    for (let y = 0; y < boardDimensions.rows; y++) {
+      for (let x = 0; x < boardDimensions.cols; x++) {
         if (bombMap[y][x] !== 9 && userInput[y][x] !== 1) {
           return false;
         }
       }
     }
     return true;
-  }, [userInput, bombMap]);
+  }, [userInput, bombMap, boardDimensions.rows, boardDimensions.cols]);
 
-  const isBombsPlaced = bombMap.flat().some((cell) => cell !== 0);
-  const flagLeft = BOMB_COUNT - userInput.flat().filter((cell) => cell === 2).length;
+  const isBombsPlaced = bombMap?.flat().some((cell) => cell !== 0);
+  const flagLeft = bombCount - (userInput?.flat().filter((cell) => cell === 2).length || 0);
 
   useEffect(() => {
     if (!isBombsPlaced) return;
@@ -104,12 +140,12 @@ export default function Home() {
 
   const rightClickHandler = (e: React.MouseEvent, x: number, y: number) => {
     e.preventDefault();
-    if (checkGameClear() || checkGameOver()) return;
+    if (checkGameClear() || checkGameOver() || !userInput) return;
 
     const flagCount = userInput.flat().filter((cell) => cell === 2).length;
     const newUserInput = structuredClone(userInput);
     if (userInput[y][x] === 0) {
-      if (flagCount < BOMB_COUNT) {
+      if (flagCount < bombCount) {
         newUserInput[y][x] = 2;
       }
     } else if (newUserInput[y][x] === 2) {
@@ -121,6 +157,7 @@ export default function Home() {
   };
 
   const clickHandler = (x: number, y: number) => {
+    if (!userInput || !bombMap) return;
     if (userInput[y][x] === 2 || userInput[y][x] === 3) return;
     if (checkGameOver() || checkGameClear()) return;
 
@@ -135,8 +172,8 @@ export default function Home() {
 
       if (withNumbers[y][x] === 0) {
         const visited: boolean[][] = Array.from(
-          { length: BOARD_SIZE },
-          () => Array(BOARD_SIZE).fill(false) as boolean[],
+          { length: boardDimensions.rows },
+          () => Array(boardDimensions.cols).fill(false) as boolean[],
         );
         revealZero(x, y, newUserInput, withNumbers, visited);
       } else {
@@ -149,10 +186,10 @@ export default function Home() {
 
     if (bombMap[y][x] === 9) {
       const newUserInput = structuredClone(userInput);
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        for (let i = 0; i < BOARD_SIZE; i++) {
+      for (let j = 0; j < boardDimensions.rows; j++) {
+        for (let i = 0; i < boardDimensions.cols; i++) {
           if (bombMap[j][i] === 9) {
-            newUserInput[j][i] = 1; // ← 爆弾マスすべて開く
+            newUserInput[j][i] = 1;
           }
         }
       }
@@ -163,8 +200,8 @@ export default function Home() {
 
     if (bombMap[y][x] === 0) {
       const visited: boolean[][] = Array.from(
-        { length: BOARD_SIZE },
-        () => Array(BOARD_SIZE).fill(false) as boolean[],
+        { length: boardDimensions.rows },
+        () => Array(boardDimensions.cols).fill(false) as boolean[],
       );
       revealZero(x, y, newUserInput, bombMap, visited);
     } else {
@@ -174,14 +211,72 @@ export default function Home() {
     setUserInput(newUserInput);
   };
 
-  const resetGame = () => {
-    setUserInput(createEmptyBoard());
-    setBombMap(createEmptyBoard());
-    setTimeCount(0);
-  };
+  if (!userInput || !bombMap) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>Loading Board...</div>
+      </div>
+    );
+  }
+
+  const cellSize = 30;
+  const boardBorderWidth = 5;
+  const onBoardBorderWidth = 5;
+
+  const calculatedBoardWidth = boardDimensions.cols * cellSize + boardBorderWidth * 2;
+  const calculatedBoardHeight = boardDimensions.rows * cellSize + boardBorderWidth * 2;
+  const timeboardInnerWidth = 280;
+  const timeboardBorderWidth = 5;
+  const calculatedTimeboardWidth = timeboardInnerWidth + timeboardBorderWidth * 2;
+  const calculateOnBoardWidth =
+    Math.max(calculatedBoardWidth, calculatedTimeboardWidth) + onBoardBorderWidth * 2;
 
   return (
     <div className={styles.container}>
+      <div className={styles.settings}>
+        <label>
+          難易度:
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value as typeof difficulty)}
+          >
+            <option value="easy">初級</option>
+            <option value="normal">中級</option>
+            <option value="hard">上級</option>
+            <option value="custom">カスタム</option>
+          </select>
+        </label>
+
+        {difficulty === 'custom' && (
+          <>
+            <label>
+              縦:
+              <input
+                type="number"
+                min={5}
+                max={50}
+                value={boardDimensions.rows}
+                onChange={(e) =>
+                  setBoardDimensions((prev) => ({ ...prev, rows: Number(e.target.value) }))
+                }
+              />
+            </label>
+            <label>
+              横:
+              <input
+                type="number"
+                min={5}
+                max={50}
+                value={boardDimensions.cols}
+                onChange={(e) =>
+                  setBoardDimensions((prev) => ({ ...prev, cols: Number(e.target.value) }))
+                }
+              />
+            </label>
+            <button onClick={resetGame}>設定して開始</button>
+          </>
+        )}
+      </div>
       <div className={styles.onBoard}>
         <div className={styles.timeboard} onClick={resetGame}>
           <div className={styles.flagCount}>
@@ -225,7 +320,17 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className={styles.board}>
+        <div
+          className={styles.board}
+          style={
+            {
+              '--grid-rows': boardDimensions.rows,
+              '--grid-cols': boardDimensions.cols,
+              width: `${calculateOnBoardWidth}px`,
+              height: `${calculatedBoardHeight}px`,
+            } as React.CSSProperties
+          }
+        >
           {userInput.map((row, y) =>
             row.map((cellState, x) => {
               // 状態に応じたクラスと style を設定

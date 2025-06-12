@@ -24,21 +24,8 @@
 
 .board {
   display: grid;
-
-  /* display: flex;
-  flex-wrap: wrap; */
-
-  grid-template-rows: repeat(9, 30px);
-  grid-template-columns: repeat(9, 30px);
-
-  /* gap: 0; */
-
-  /* width: 270px;
-  height: 270px; */
-
-  /* padding: 4px; */
-
-  /* background-color: gray; */
+  grid-template-rows: repeat(var(--rows, 9), var(--cell-size, 30px));
+  grid-template-columns: repeat(var(--cols, 9), var(--cell-size, 30px));
   border-top: 5px solid rgb(30 38 46);
   border-right: 5px solid rgb(120 128 136);
   border-bottom: 5px solid rgb(120 128 136);
@@ -53,11 +40,6 @@
   background: url('~/src/assets/images/icons.png') no-repeat;
   background-color: rgb(56 64 72);
   border: 1px solid rgb(30 38 46);
-
-  /* border-top: 1px solid gray;
-  border-right: 1px solid gray;
-  border-bottom: 1px solid gray;
-  border-left: 1px solid gray; */
 }
 
 .cell {
@@ -187,4 +169,24 @@
   height: 150px;
   background: url('~/src/assets/images/image.png') no-repeat;
   background-size: 700px 150px;
+}
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.settings label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.settings input,
+.settings select {
+  padding: 4px;
+  font-size: 14px;
 }
