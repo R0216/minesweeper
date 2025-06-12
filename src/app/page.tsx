@@ -90,6 +90,7 @@ export default function Home() {
   }, [userInput, bombMap]);
 
   const isBombsPlaced = bombMap.flat().some((cell) => cell !== 0);
+  const flagLeft = BOMB_COUNT - userInput.flat().filter((cell) => cell === 2).length;
 
   useEffect(() => {
     if (!isBombsPlaced) return;
@@ -103,10 +104,14 @@ export default function Home() {
 
   const rightClickHandler = (e: React.MouseEvent, x: number, y: number) => {
     e.preventDefault();
+    if (checkGameClear() || checkGameOver()) return;
 
+    const flagCount = userInput.flat().filter((cell) => cell === 2).length;
     const newUserInput = structuredClone(userInput);
     if (userInput[y][x] === 0) {
-      newUserInput[y][x] = 2;
+      if (flagCount < BOMB_COUNT) {
+        newUserInput[y][x] = 2;
+      }
     } else if (newUserInput[y][x] === 2) {
       newUserInput[y][x] = 3;
     } else if (userInput[y][x] === 3) {
@@ -179,8 +184,32 @@ export default function Home() {
     <div className={styles.container}>
       <div className={styles.onBoard}>
         <div className={styles.timeboard} onClick={resetGame}>
-          <div className={styles.flagCount} />
-          <div className={styles.resetButton} onClick={resetGame} />
+          <div className={styles.flagCount}>
+            <div className={styles.timeNumber}>
+              {String(flagLeft)
+                .padStart(3, '0')
+                .split('')
+                .map((digit, idx) => (
+                  <div
+                    key={idx}
+                    className={styles.digit}
+                    style={{ backgroundPosition: `${-parseInt(digit) * 70.0}px 0px` }}
+                  />
+                ))}
+            </div>
+          </div>
+
+          <div
+            className={styles.resetButton}
+            style={{
+              backgroundPosition: checkGameOver()
+                ? '-390px'
+                : checkGameClear()
+                  ? '-360px'
+                  : '-330px',
+            }}
+            onClick={resetGame}
+          />
           <div className={styles.time}>
             <div className={styles.timeNumber}>
               {String(timeCount)
@@ -190,23 +219,11 @@ export default function Home() {
                   <div
                     key={idx}
                     className={styles.digit}
-                    style={{ backgroundPosition: `${-parseInt(digit) * 62.0}px 0px` }}
+                    style={{ backgroundPosition: `${-parseInt(digit) * 70.0}px 0px` }}
                   />
                 ))}
             </div>
           </div>
-          {/* <div className={styles.timeNumber}>
-            {String(timeCount)
-              .padStart(3, '0')
-              .split('')
-              .map((digit, idx) => (
-                <div
-                  key={idx}
-                  className={styles.digit}
-                  style={{ backgroundPosition: `${-parseInt(digit) * 62}px 0px` }}
-                />
-              ))}
-          </div> */}
         </div>
         <div className={styles.board}>
           {userInput.map((row, y) =>

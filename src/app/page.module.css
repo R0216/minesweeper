@@ -95,7 +95,7 @@
 
 .timeboard {
   display: flex;
-  gap: 30px;
+  gap: 45px;
   align-items: center;
   justify-content: center;
   width: 280px;
@@ -118,6 +118,7 @@
   border-right: 5px solid rgb(34 42 50);
   border-bottom: 5px solid rgb(34 42 50);
   border-left: 5px solid rgb(112 120 128);
+  transform: scale(1.3);
 }
 
 .resetButton:active {
@@ -149,10 +150,9 @@
   box-sizing: border-box;
   width: 30px;
   height: 30px;
-  background: url('~/src/assets/images/icons.png') no-repeat;
+  background: url('~/src/assets/images/flag.png') no-repeat;
   background-color: rgb(76 84 92);
-  background-position: -270px;
-  background-size: auto;
+  background-size: 100%;
   border-top: 4px solid rgb(112 120 128);
   border-right: 4px solid rgb(34 42 50);
   border-bottom: 4px solid rgb(34 42 50);
@@ -163,10 +163,9 @@
   box-sizing: border-box;
   width: 30px;
   height: 30px;
-  background: url('~/src/assets/images/icons.png') no-repeat;
+  background: url('~/src/assets/images/question.png') no-repeat;
   background-color: rgb(76 84 92);
-  background-position: -240px;
-  background-size: auto;
+  background-size: 100%;
   border-top: 4px solid rgb(112 120 128);
   border-right: 4px solid rgb(34 42 50);
   border-bottom: 4px solid rgb(34 42 50);
@@ -176,16 +175,16 @@
 .timeNumber {
   display: flex;
   background-color: black;
-  border-top: 7px solid rgb(30 38 46);
-  border-right: 7px solid rgb(96 104 111);
-  border-bottom: 7px solid rgb(96 104 111);
-  border-left: 7px solid rgb(30 38 46);
+  border-top: 9px solid rgb(30 38 46);
+  border-right: 9px solid rgb(96 104 111);
+  border-bottom: 9px solid rgb(96 104 111);
+  border-left: 9px solid rgb(30 38 46);
   transform: scale(0.3);
 }
 
 .digit {
-  width: 62px;
-  height: 120px;
+  width: 70px;
+  height: 150px;
   background: url('~/src/assets/images/image.png') no-repeat;
-  background-size: 620px 120px;
+  background-size: 700px 150px;
 }
