@@ -131,8 +131,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 30px;
+  width: 45px;
+  height: 40px;
   background-color: #fff;
 }
 
@@ -140,9 +140,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
+  width: 50px;
   height: 30px;
-  background-color: #fff;
+  background-color: white;
 }
 
 .flag {
@@ -171,4 +171,21 @@
   border-right: 4px solid rgb(34 42 50);
   border-bottom: 4px solid rgb(34 42 50);
   border-left: 4px solid rgb(112 120 128);
+}
+
+.timeNumber {
+  display: flex;
+  background-color: black;
+  border-top: 7px solid rgb(30 38 46);
+  border-right: 7px solid rgb(96 104 111);
+  border-bottom: 7px solid rgb(96 104 111);
+  border-left: 7px solid rgb(30 38 46);
+  transform: scale(0.3);
+}
+
+.digit {
+  width: 62px;
+  height: 120px;
+  background: url('~/src/assets/images/image.png') no-repeat;
+  background-size: 620px 120px;
 }

@@ -181,7 +181,32 @@ export default function Home() {
         <div className={styles.timeboard} onClick={resetGame}>
           <div className={styles.flagCount} />
           <div className={styles.resetButton} onClick={resetGame} />
-          <div className={styles.time}>{timeCount}</div>
+          <div className={styles.time}>
+            <div className={styles.timeNumber}>
+              {String(timeCount)
+                .padStart(3, '0')
+                .split('')
+                .map((digit, idx) => (
+                  <div
+                    key={idx}
+                    className={styles.digit}
+                    style={{ backgroundPosition: `${-parseInt(digit) * 62.0}px 0px` }}
+                  />
+                ))}
+            </div>
+          </div>
+          {/* <div className={styles.timeNumber}>
+            {String(timeCount)
+              .padStart(3, '0')
+              .split('')
+              .map((digit, idx) => (
+                <div
+                  key={idx}
+                  className={styles.digit}
+                  style={{ backgroundPosition: `${-parseInt(digit) * 62}px 0px` }}
+                />
+              ))}
+          </div> */}
         </div>
         <div className={styles.board}>
           {userInput.map((row, y) =>
