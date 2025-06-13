@@ -222,13 +222,8 @@ export default function Home() {
 
   const calculatedBoardWidth = boardDimensions.cols * cellSize + boardBorderWidth * 2;
   const calculatedBoardHeight = boardDimensions.rows * cellSize + boardBorderWidth * 2;
-  const minTimeboardInnerWidth = 280;
-  const timeboardBorderWidth = 5;
-  const calculatedMinTimeboardWidth = minTimeboardInnerWidth + timeboardBorderWidth * 2;
-  const actualTimeboardWidth = Math.max(calculatedBoardWidth, calculatedMinTimeboardWidth);
+  const actualTimeboardWidth = calculatedBoardWidth;
   const finalOnBoardWidth = actualTimeboardWidth + onBoardBorderWidth * 2;
-  Math.max(calculatedBoardWidth, calculatedMinTimeboardWidth) + onBoardBorderWidth * 2;
-
   return (
     <div className={styles.container}>
       <div className={styles.settings}>
@@ -286,7 +281,11 @@ export default function Home() {
         )}
       </div>
       <div className={styles.onBoard} style={{ width: `${finalOnBoardWidth}px`, height: 'auto' }}>
-        <div className={styles.timeboard} onClick={resetGame}>
+        <div
+          className={styles.timeboard}
+          style={{ width: `${actualTimeboardWidth}px` }}
+          onClick={resetGame}
+        >
           <div className={styles.flagCount}>
             <div className={styles.timeNumber}>
               {String(flagLeft)
