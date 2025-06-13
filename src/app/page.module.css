@@ -193,3 +193,7 @@
   padding: 4px;
   font-size: 14px;
 }
+
+.loading {
+  gap: 0;
+}

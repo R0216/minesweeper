@@ -211,7 +211,7 @@ export default function Home() {
   if (!userInput || !bombMap) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading Board...</div>
+        <div className={styles.loading} />
       </div>
     );
   }
