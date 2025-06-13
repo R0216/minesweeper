@@ -228,7 +228,6 @@ export default function Home() {
     <div className={styles.container}>
       <div className={styles.settings}>
         <label>
-          難易度:
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value as typeof difficulty)}
@@ -276,7 +275,7 @@ export default function Home() {
                 onChange={(e) => setBombCount(Number(e.target.value))}
               />
             </label>
-            <button onClick={resetGame}>設定して開始</button>
+            <button onClick={resetGame}>更新</button>
           </>
         )}
       </div>
