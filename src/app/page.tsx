@@ -251,8 +251,8 @@ export default function Home() {
               縦:
               <input
                 type="number"
-                min={5}
-                max={50}
+                min={1}
+                max={100}
                 value={boardDimensions.rows}
                 onChange={(e) =>
                   setBoardDimensions((prev) => ({ ...prev, rows: Number(e.target.value) }))
@@ -263,12 +263,22 @@ export default function Home() {
               横:
               <input
                 type="number"
-                min={5}
-                max={50}
+                min={1}
+                max={100}
                 value={boardDimensions.cols}
                 onChange={(e) =>
                   setBoardDimensions((prev) => ({ ...prev, cols: Number(e.target.value) }))
                 }
+              />
+            </label>
+            <label>
+              爆弾数:
+              <input
+                type="number"
+                min={1}
+                max={Math.floor(boardDimensions.rows * boardDimensions.cols)}
+                value={bombCount}
+                onChange={(e) => setBombCount(Number(e.target.value))}
               />
             </label>
             <button onClick={resetGame}>設定して開始</button>

@@ -25,8 +25,8 @@
 
 .board {
   display: grid;
-  grid-template-rows: repeat(var(--rows, 9), var(--cell-size, 30px));
-  grid-template-columns: repeat(var(--cols, 9), var(--cell-size, 30px));
+  grid-template-rows: repeat(var(--grid-rows), var(--cell-size, 30px));
+  grid-template-columns: repeat(var(--grid-cols), var(--cell-size, 30px));
   border-top: 5px solid rgb(30 38 46);
   border-right: 5px solid rgb(120 128 136);
   border-bottom: 5px solid rgb(120 128 136);
