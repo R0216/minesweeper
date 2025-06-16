@@ -127,13 +127,50 @@ export default function Home() {
 
   useEffect(() => {
     if (!isBombsPlaced) return;
-    if (checkGameClear() || checkGameOver()) return;
+    const gameClear = checkGameClear();
+    const gameOver = checkGameOver();
+
+    if (gameClear) {
+      if (userInput && bombMap) {
+        const allFlags = bombMap.every((row, y) =>
+          row.every((cell, x) => {
+            if (cell === 9) {
+              return userInput[y][x] === 2;
+            } else {
+              return userInput[y][x] === 1;
+            }
+          }),
+        );
+        if (!allFlags) {
+          const newUserInput = structuredClone(userInput);
+          for (let y = 0; y < boardDimensions.rows; y++) {
+            for (let x = 0; x < boardDimensions.cols; x++) {
+              if (bombMap[y][x] === 9 && (newUserInput[y][x] === 0 || newUserInput[y][x] === 3)) {
+                newUserInput[y][x] = 2;
+              }
+            }
+          }
+          setUserInput(newUserInput);
+        }
+      }
+    }
+    if (gameClear || gameOver) {
+      return;
+    }
 
     const timer = setInterval(() => {
       setTimeCount((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [isBombsPlaced, userInput, checkGameClear, checkGameOver]);
+  }, [
+    isBombsPlaced,
+    userInput,
+    checkGameClear,
+    checkGameOver,
+    bombMap,
+    boardDimensions.rows,
+    boardDimensions.cols,
+  ]);
 
   const rightClickHandler = (e: React.MouseEvent, x: number, y: number) => {
     e.preventDefault();
@@ -223,7 +260,7 @@ export default function Home() {
   const calculatedBoardWidth = boardDimensions.cols * cellSize + boardBorderWidth * 2;
   const calculatedBoardHeight = boardDimensions.rows * cellSize + boardBorderWidth * 2;
   const actualTimeboardWidth = calculatedBoardWidth;
-  const finalOnBoardWidth = actualTimeboardWidth + onBoardBorderWidth * 2;
+  const finalOnBoardWidth = actualTimeboardWidth + onBoardBorderWidth * 7;
   return (
     <div className={styles.container}>
       <div className={styles.settings}>
@@ -270,9 +307,13 @@ export default function Home() {
               <input
                 type="number"
                 min={1}
-                max={Math.floor(boardDimensions.rows * boardDimensions.cols)}
+                max={Math.floor(boardDimensions.rows * boardDimensions.cols - 1)}
                 value={bombCount}
-                onChange={(e) => setBombCount(Number(e.target.value))}
+                onChange={(e) => {
+                  const newValue = Number(e.target.value);
+                  const maxBombs = Math.floor(boardDimensions.rows * boardDimensions.cols - 1);
+                  setBombCount(Math.min(newValue, maxBombs));
+                }}
               />
             </label>
             <button onClick={resetGame}>更新</button>
