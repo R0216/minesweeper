@@ -135,7 +135,7 @@
   width: 30px;
   height: 30px;
   background: url('~/src/assets/images/flag.png') no-repeat;
-  background-color: rgb(76 84 92);
+  background-color: #c6c6c6;
   background-size: 100%;
   border-top: 4px solid #fff;
   border-right: 4px solid #808080;
@@ -148,7 +148,7 @@
   width: 30px;
   height: 30px;
   background: url('~/src/assets/images/question.png') no-repeat;
-  background-color: rgb(76 84 92);
+  background-color: #c6c6c6;
   background-size: 100%;
   border-top: 4px solid #fff;
   border-right: 4px solid #808080;
