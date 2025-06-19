@@ -19,6 +19,15 @@ export default function Home() {
   const [boardDimensions, setBoardDimensions] = useState<BoardDimensions>({ rows: 9, cols: 9 });
   const [bombCount, setBombCount] = useState(10);
 
+  useEffect(() => {
+    if (difficulty === 'custom') {
+      const maxPossibleBombs = Math.floor(boardDimensions.rows * boardDimensions.cols - 1);
+      if (bombCount > maxPossibleBombs) {
+        setBombCount(maxPossibleBombs);
+      }
+    }
+  }, [boardDimensions.rows, boardDimensions.cols, bombCount, difficulty]);
+
   const createEmptyBoard = useCallback(
     (): number[][] =>
       Array.from({ length: boardDimensions.rows }).map(() =>
@@ -306,7 +315,7 @@ export default function Home() {
               爆弾数:
               <input
                 type="number"
-                min={1}
+                min={0}
                 max={Math.floor(boardDimensions.rows * boardDimensions.cols - 1)}
                 value={bombCount}
                 onChange={(e) => {
